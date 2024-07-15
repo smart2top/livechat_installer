@@ -1,0 +1,12 @@
+senha=123456
+deploy_password=${senha}
+pg_pass=${senha}
+redis_pass=${senha}
+deploy_email=seuemail@gmail.com
+repositorio=https://github.com/smart2top/livechat.git
+nome_instancia=livechat
+porta_postgre_intancia=5432
+frontend_url=front.seusite.com.br
+frontend_porta=4000
+backend_url=back.seusite.com.br
+backend_porta=3000
