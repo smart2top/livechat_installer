@@ -21,6 +21,8 @@ source "${PROJECT_ROOT}"/lib/manifest.sh
 if [[ ! -e "${PROJECT_ROOT}"/config ]]; then
   cat << EOF > "${PROJECT_ROOT}"/config
 deploy_password=${deploy_password}
+mysql_root_password=${mysql_root_password}
+db_pass=${db_pass}
 EOF
 fi
 
@@ -41,7 +43,6 @@ system_node_install
 system_pm2_install
 system_docker_install
 system_puppeteer_dependencies
-instalacao_firewall
 system_snapd_install
 system_nginx_install
 system_certbot_install

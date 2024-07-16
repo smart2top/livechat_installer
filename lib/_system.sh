@@ -23,82 +23,6 @@ EOF
   sleep 2
 }
 
-instalacao_firewall() {
-  print_banner
-  printf "${WHITE} 💻 Agora, vamos instalar e ativar firewall UFW...${GRAY_LIGHT}"
-  printf "\n\n"
-
-  sleep 2
-
-  sudo su - root <<EOF
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow ssh
-ufw allow 22
-ufw allow 80
-ufw allow 443
-ufw allow 9000
-ufw --force enable
-echo "{\"iptables\": false}" > /etc/docker/daemon.json
-systemctl restart docker
-sed -i -e 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/g' /etc/default/ufw
-ufw reload
-wget -q -O /usr/local/bin/ufw-docker https://github.com/chaifeng/ufw-docker/raw/master/ufw-docker
-chmod +x /usr/local/bin/ufw-docker
-ufw-docker install
-systemctl restart ufw
-EOF
-
-  sleep 2
-}
-
-iniciar_firewall() {
-  print_banner
-  printf "${WHITE} 💻 Iniciando Firewall...${GRAY_LIGHT}"
-  printf "\n\n"
-
-  sleep 2
-
-  sudo su - root <<EOF
-  service ufw start
-  
-EOF
-
-  sleep 2
-}
-
-parar_firewall() {
-  print_banner
-  printf "${WHITE} 💻 Parando Firewall(atenção seu servidor ficara desprotegido)...${GRAY_LIGHT}"
-  printf "\n\n"
-
-  sleep 2
-
-  sudo su - root <<EOF
-  service ufw stop
-  
-EOF
-
-  sleep 2
-}
-
-erro_banco() {
-  print_banner
-  printf "${WHITE} 💻 Estamos corrigindo...${GRAY_LIGHT}"
-  printf "\n\n"
-
-  sleep 2
-
-  sudo su - root <<EOF
-  docker container restart postgresql
-  docker exec -u root postgresql bash -c "chown -R postgres:postgres /var/lib/postgresql/data"
-  docker container restart postgresql
-  
-EOF
-
-  sleep 2
-}
-
 #######################################
 # set timezone
 # Arguments:
@@ -119,13 +43,13 @@ EOF
 }
 
 #######################################
-# unzip izing
+# unzip livechat
 # Arguments:
 #   None
 #######################################
 system_unzip_izing() {
   print_banner
-  printf "${WHITE} 💻 Baixando izing...${GRAY_LIGHT}"
+  printf "${WHITE} 💻 Baixando livechat...${GRAY_LIGHT}"
   printf "\n\n"
 
   sleep 2
@@ -172,7 +96,7 @@ system_node_install() {
   sleep 2
 
   sudo su - root <<EOF
-  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
   apt-get install -y nodejs
 EOF
 
@@ -240,7 +164,7 @@ system_puppeteer_dependencies() {
   sleep 2
 
   sudo su - root <<EOF
-apt install -y ufw apt-transport-https ffmpeg fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 ca-certificates software-properties-common curl libgbm-dev wget unzip fontconfig locales gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils python2-minimal build-essential libxshmfence-dev nginx
+apt install -y apt-transport-https ffmpeg fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 ca-certificates software-properties-common curl libgbm-dev wget unzip fontconfig locales gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils python2-minimal build-essential libxshmfence-dev nginx
 EOF
 
   sleep 2
@@ -382,8 +306,7 @@ system_nginx_conf() {
 sudo su - root << EOF
 
 cat > /etc/nginx/conf.d/izingio.conf << 'END'
-client_max_body_size 100M;
-large_client_header_buffers 16 5120k;
+client_max_body_size 20M;
 END
 
 EOF
@@ -415,7 +338,7 @@ system_certbot_setup() {
           --domains $backend_domain,$frontend_domain
 EOF
 
-  sleep 60
+  sleep 2
 }
 
 #######################################
@@ -474,7 +397,6 @@ system_docker_restart() {
   sudo su - root <<EOF
   docker container restart portainer
   docker container restart postgresql
-  docker exec -u root postgresql bash -c "chown -R postgres:postgres /var/lib/postgresql/data"
 EOF
 
   sleep 10
@@ -492,7 +414,6 @@ system_success() {
   printf "${GREEN} 💻 Instalação concluída com Sucesso...${NC}"
   printf "${CYAN_LIGHT}";
   printf "\n\n"
-  printf "\n"
   printf "Usuário: admin@izing.io"
   printf "\n"
   printf "Senha: 123456"
@@ -501,7 +422,7 @@ system_success() {
   printf "\n"
   printf "URL back: https://$backend_domain"
   printf "\n"
-  printf "Acesso ao Portainer: http://$frontend_domain:9000"
+  printf "Acesso ao Portainer: http://ip_da_vps:9000"
   printf "\n"
   printf "Senha Usuario Deploy: $deploy_password"
   printf "\n"
@@ -512,6 +433,8 @@ system_success() {
   printf "Senha do Banco de Dados: $pg_pass"
   printf "\n"
   printf "Senha do Redis: $redis_pass"
+  printf "\n"
+  printf "Senha do Rabbit: $rabbit_pass"
   printf "\n"
   printf "${NC}";
 

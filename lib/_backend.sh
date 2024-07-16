@@ -16,8 +16,6 @@ backend_db_create() {
 
   sudo su - root <<EOF
   usermod -aG docker deploy
-  mkdir -p /data
-  chown -R 999:999 /data
   docker run --name postgresql \
                 -e POSTGRES_USER=izing \
                 -e POSTGRES_PASSWORD=${pg_pass} \
@@ -35,6 +33,16 @@ backend_db_create() {
                 --appendonly yes \
                 --requirepass "${redis_pass}"
 
+  docker run -d --name rabbitmq \
+                -p 5672:5672 \
+                -p 15672:15672 \
+                --restart=always \
+                --hostname rabbitmq \
+                -e RABBITMQ_DEFAULT_USER=izing \
+                -e RABBITMQ_DEFAULT_PASS=${rabbit_pass} \
+                -v /data:/var/lib/rabbitmq \
+                rabbitmq:3-management-alpine
+  
   docker run -d --name portainer \
                 -p 9000:9000 -p 9443:9443 \
                 --restart=always \
@@ -88,9 +96,6 @@ backend_set_env() {
   frontend_url=$(echo "${frontend_url/https:\/\/}")
   frontend_url=${frontend_url%%/*}
   frontend_url=https://$frontend_url
-  
-  jwt_secret=$(openssl rand -base64 32)
-  jwt_refresh_secret=$(openssl rand -base64 32)
 
 sudo su - deploy << EOF
   cat <<[-]EOF > /home/deploy/${nome_instancia}/backend/.env
@@ -111,8 +116,8 @@ POSTGRES_PASSWORD=${pg_pass}
 POSTGRES_DB=postgres
 
 # Chaves para criptografia do token jwt
-JWT_SECRET=${jwt_secret}
-JWT_REFRESH_SECRET=${jwt_refresh_secret}
+JWT_SECRET=DPHmNRZWZ4isLF9vXkMv1QabvpcA80Rc
+JWT_REFRESH_SECRET=EMPehEbrAdi7s8fGSeYzqGQbV5wrjH4i
 
 # Dados de conexão com o REDIS
 IO_REDIS_SERVER=localhost
@@ -136,9 +141,9 @@ MIN_SLEEP_INTERVAL=2000
 MAX_SLEEP_INTERVAL=5000
 
 # dados do RabbitMQ / Para não utilizar, basta comentar a var AMQP_URL
-RABBITMQ_DEFAULT_USER=admin
-RABBITMQ_DEFAULT_PASS=123456
-# AMQP_URL='amqp://admin:123456@host.docker.internal:5672?connection_attempts=5&retry_delay=5'
+RABBITMQ_DEFAULT_USER=izing
+RABBITMQ_DEFAULT_PASS=${rabbit_pass}
+AMQP_URL='amqp://izing:${rabbit_pass}@localhost:5672?connection_attempts=5&retry_delay=5'
 
 # api oficial (integração em desenvolvimento)
 API_URL_360=https://waba-sandbox.360dialog.io
@@ -147,8 +152,8 @@ API_URL_360=https://waba-sandbox.360dialog.io
 ADMIN_DOMAIN=izing.io
 
 # Dados para utilização do canal do facebook
-FACEBOOK_APP_ID=3237415623048660
-FACEBOOK_APP_SECRET_KEY=3266214132b8c98ac59f3e957a5efeaaa13500
+FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET_KEY=
 
 # Forçar utilizar versão definida via cache (https://wppconnect.io/pt-BR/whatsapp-versions/)
 #WEB_VERSION=2.2409.2
@@ -224,10 +229,8 @@ whatsappweb_update() {
   sudo su - deploy <<EOF
   cd /home/deploy/${nome_instancia}/backend
   pm2 stop all
-  rm .wwebjs_auth -Rf
-  rm .wwebjs_cache -Rf
   npm r whatsapp-web.js
-  npm i whatsapp-web.js@^1.24.0
+  npm i whatsapp-web.js@^1.23.1-alpha.6
   pm2 restart all
 EOF
 
@@ -249,13 +252,13 @@ EOF
 }
 
 #######################################
-# updates izing
+# updates livechat
 # Arguments:
 #   None
 #######################################
 git_update() {
   print_banner
-  printf "${WHITE} 💻 Atualizando o izing do git...${GRAY_LIGHT}"
+  printf "${WHITE} 💻 Atualizando o livechat do git...${GRAY_LIGHT}"
   printf "\n\n"
 
   sleep 2
@@ -263,8 +266,7 @@ git_update() {
   sudo su - deploy <<EOF
   cd /home/deploy/${nome_instancia}
   pm2 stop all
-  git stash clear
-  git stash
+  git checkout master
   git pull
 EOF
 

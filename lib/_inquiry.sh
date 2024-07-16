@@ -31,22 +31,13 @@ izing_atualizar() {
   backend_node_dependencies
   backend_node_build
   backend_db_migrate
+  backend_db_seed
   restart_pm2
   frontend_node_dependencies
   frontend_node_build
 }
 
-ativar_firewall () {
-  iniciar_firewall
-}
 
-desativar_firewall () {
-  parar_firewall
-}
-
-Erro_global () {
-  erro_banco
-}
 
 inquiry_options() {
   
@@ -57,9 +48,6 @@ inquiry_options() {
   printf "   [2] Atualizar Conector WWebJS whatsapp.js\n"
   printf "   [3] Instalar 2 instancia\n"
   printf "   [4] Atualizar Izing\n"
-  printf "   [5] Ativar Firewall\n"
-  printf "   [6] Desativar Firewall\n"
-  printf "   [7] Erro global/pg_filenode.map\n"
   printf "\n"
   read -p "> " option
 
@@ -78,23 +66,7 @@ inquiry_options() {
 	4) izing_atualizar
       exit
       ;;
-	  
-     5) 
-      ativar_firewall 
-      exit
-      ;;
-	  
-    6) 
-      desativar_firewall 
-      exit
-      ;;
-	  
-    7) 
-      Erro_global 
-      exit
-      ;;
 
     *) exit ;;
   esac
 }
-
