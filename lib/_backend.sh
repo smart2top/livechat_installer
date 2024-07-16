@@ -116,8 +116,8 @@ POSTGRES_PASSWORD=${pg_pass}
 POSTGRES_DB=postgres
 
 # Chaves para criptografia do token jwt
-JWT_SECRET=DPHmNRZWZ4isLF9vXkMv1QabvpcA80Rc
-JWT_REFRESH_SECRET=EMPehEbrAdi7s8fGSeYzqGQbV5wrjH4i
+JWT_SECRET=b1c421ee38a557dd2eeb777b9c627a14
+JWT_REFRESH_SECRET=6ac022c53be4cecbf497f60c864e8a62
 
 # Dados de conexão com o REDIS
 IO_REDIS_SERVER=localhost
